@@ -1,0 +1,4 @@
+requests
+ipython
+beautifulsoup4
+ollama
