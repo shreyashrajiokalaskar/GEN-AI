@@ -1,40 +1,20 @@
-# 📂 Project Portfolio
+# Python Virtual Environment Setup Commands
 
-Welcome to my GEN-AI projects!  
-Here are some of the projects I've built along with their GitHub repositories.
+Use the commands below to create and manage your virtual environment and dependencies.
 
----
+```bash
+# Create virtual environment
+python -m venv .
 
-## 📄 Brochure Generator
+# Activate the virtual environment
+source ./bin/activate
 
-**Description:**  
-A tool that generates brochures for Companies via their URL using AI.
+# Install required packages
+pip install Flask
 
-**Tech Stack:** Python, LLaMA, OpenAI SDK  
-**Repository:** [brochure-generator](https://github.com/shreyashrajiokalaskar/GEN-AI/tree/brochure-generator)
+# Generate requirements.txt file
+pip freeze > requirements.txt
 
----
-
-## 🎓 Technology Tutor
-
-**Description:**  
-An interactive tutor bot that explains technology concepts.
-
-**Tech Stack:** React, OpenAI API  
-**Repository:** [Technology-Tutor](https://github.com/YOUR_USERNAME/Technology-Tutor)
-
----
-
-## 🌐 Website Summary Generator
-
-**Description:**  
-A web scraping and summarization application.
-
-**Tech Stack:** Python, BeautifulSoup, Ollama  
-**Repository:** [website-summary-generator](https://github.com/YOUR_USERNAME/website-summary-generator)
-
----
-
-💡 Feel free to explore the repositories and reach out with any questions or contributions!
-
-Happy Coding! 🎉
+# Install packages from requirements.txt
+pip install -r ./requirements.txt
+```
