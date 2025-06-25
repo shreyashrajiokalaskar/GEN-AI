@@ -11,7 +11,7 @@ Here are some of the projects I've built along with their GitHub repositories.
 A tool that generates brochures for Companies via their URL using AI.
 
 **Tech Stack:** Python, LLaMA, OpenAI SDK  
-**Repository:** [brochure-generator](https://github.com/YOUR_USERNAME/brochure-generator)
+**Repository:** [brochure-generator](https://github.com/shreyashrajiokalaskar/GEN-AI/tree/brochure-generator)
 
 ---
 
