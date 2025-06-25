@@ -1,5 +1,20 @@
-python -m venv /path/to/new/virtual/environment -> CREATES VIRTUAL ENVIRONMENT
-source ./bin/activate -> ACTIVATES THE VIRTUAL ENV
-pip install Flask -> INSTALLS REQUIRED PACKAGES
-pip freeze > requirements.txt ---> GENERATES A requirements.txt FILE WITH ALL THE PACKAGES
-pip install -r ./requirements.txt ---> INSTALL PACKAGES AND SETS-UP VIRTUAL ENV 
+# Python Virtual Environment Setup Commands
+
+Use the commands below to create and manage your virtual environment and dependencies.
+
+```bash
+# Create virtual environment
+python -m venv .
+
+# Activate the virtual environment
+source ./bin/activate
+
+# Install required packages
+pip install Flask
+
+# Generate requirements.txt file
+pip freeze > requirements.txt
+
+# Install packages from requirements.txt
+pip install -r ./requirements.txt
+```
