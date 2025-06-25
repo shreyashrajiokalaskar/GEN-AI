@@ -21,7 +21,7 @@ A tool that generates brochures for Companies via their URL using AI.
 An interactive tutor bot that explains technology concepts.
 
 **Tech Stack:** React, OpenAI API  
-**Repository:** [Technology-Tutor](https://github.com/YOUR_USERNAME/Technology-Tutor)
+**Repository:** [Technology-Tutor](https://github.com/shreyashrajiokalaskar/GEN-AI/tree/tech-tutor)
 
 ---
 
@@ -31,7 +31,7 @@ An interactive tutor bot that explains technology concepts.
 A web scraping and summarization application.
 
 **Tech Stack:** Python, BeautifulSoup, Ollama  
-**Repository:** [website-summary-generator](https://github.com/YOUR_USERNAME/website-summary-generator)
+**Repository:** [website-summary-generator](https://github.com/shreyashrajiokalaskar/GEN-AI/tree/website-summary-generator)
 
 ---
 
