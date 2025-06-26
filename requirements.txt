@@ -2,3 +2,5 @@ requests
 ipython
 beautifulsoup4
 ollama
+openai
+dotenv

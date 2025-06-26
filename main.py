@@ -1,92 +1,67 @@
 import os
+from typing import cast
 import requests
 from bs4 import BeautifulSoup
 from IPython.display import Markdown, display
-import ollama
+from openai import OpenAI
+from dotenv import load_dotenv
+from openai.types.chat import ChatCompletionMessageParam
 
-MODEL = "llama3.2"
+load_dotenv(override=True)
+api_key = os.getenv("OPENAI_API_KEY")
 
-response = ollama.chat(
-    model=MODEL, messages=[{"role": "user", "content": "Hello, who are you?"}]
+if not api_key:
+    print(
+        "No API key was found - please head over to the troubleshooting notebook in this folder to identify & fix!"
+    )
+elif not api_key.startswith("sk-proj-"):
+    print(
+        "An API key was found, but it doesn't start sk-proj-; please check you're using the right key - see troubleshooting notebook"
+    )
+elif api_key.strip() != api_key:
+    print(
+        "An API key was found, but it looks like it might have space or tab characters at the start or end - please remove them - see troubleshooting notebook"
+    )
+else:
+    print("API key found and looks good so far!")
+
+client = OpenAI(
+    api_key=api_key,
 )
-# print(response['message']['content'])
 
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-}
+MODEL = "gpt-4o-mini"
 
 
-class Website:
-
-    def __init__(self, url):
-        self.url = url
-        try:
-            response = requests.get(url, headers=headers, timeout=10)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            raise RuntimeError(f"Error fetching {url}: {e}")
-
-        soup = BeautifulSoup(response.content, "html.parser")
-        self.title = soup.title.string if soup.title else "No title found"
-        body = soup.body
-        if body:
-            # Remove scripts, styles, images, inputs
-            for irrelevant in body(["script", "style", "img", "input"]):
-                irrelevant.decompose()
-            self.text = body.get_text(separator="\n", strip=True)
-        else:
-            self.text = ""
+system_prompt = "You are a Tutor who answers questions related to AI and ML only. When questions outside this domain are asked, politely apologize and inform the user that the topic is outside your expertise. Your response must always be in Markdown format."
+conversation = [
+    {"role": "system", "content": system_prompt},
+]
+messages = cast(list[ChatCompletionMessageParam], conversation)
 
 
-print("\n---------------------------------------\n")
-ed = Website("https://shreyash-kalaskar.netlify.app")
-# print(ed)
-
-print("\n---------------------------------------\n")
-
-system_prompt = "You are an assistant that analyzes the contents of a website \
-and provides a short summary, ignoring text that might be navigation related. \
-Respond in markdown."
+def send_prompt(system_prompt, user_prompt, stream=False):
+    conversation.append({"role": "user", "content": user_prompt})
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=messages,
+    )
+    return response
 
 
-def user_prompt_for(website):
-    user_prompt = f"You are looking at a website titled {website.title}"
-    user_prompt += "\nThe contents of this website is as follows; please provide a short summary of this website in markdown. If it includes news or announcements, then summarize these too.\n\n"
-    user_prompt += website.text
-    return user_prompt
+def get_answer(question):
+    answer = send_prompt(system_prompt, question, False)
+    result = answer.choices[0].message.content
+    conversation.append({"role": "assistant", "content": cast(str, result)})
+    print(result)
+    display(Markdown(result))
 
 
-# print(user_prompt_for(ed))
+print("Hello this is your Tutor for AI and ML!")
 
+while True:
+    question = input("Please ask doubts incase you have any, else type exit to exit!\n")
+    if question != "exit":
+        answer = get_answer(question)
 
-def messages_for(website):
-    return [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt_for(website)},
-    ]
-
-
-def summarize(url):
-    website = Website(url)
-    response = ollama.chat(model=MODEL, messages=messages_for(website))
-    return response["message"]["content"]
-
-
-def display_summary(url):
-    summary = summarize(url)
-    display(Markdown(summary))
-
-
-display_summary("https://cnn.com")
-
-# system_prompt2 = "You are an assistant that gives information about the components of an airplane and provides a short summary."
-# THIS USES THE MODIFIED SYSTEM_PROMPT
-# component = input("Ask the bot!")
-# response = ollama.chat(
-#     model=MODEL,
-#     messages=[
-#     {"role": "system", "content": system_prompt2},
-#     {"role": "user", "content": f"What is {component}" }
-#     ]
-# )
-# print(response['message']['content'])
+    else:
+        break
