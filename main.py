@@ -3,9 +3,17 @@ import os
 import requests
 from bs4 import BeautifulSoup, Tag
 from IPython.display import Markdown, display
-import ollama
+from openai import OpenAI
+from dotenv import load_dotenv
 
-MODEL = "llama3.2"
+MODEL = "gpt-4o-mini"
+load_dotenv(override=True)
+
+api_key = os.getenv("OPENAI_API_KEY")
+
+client = OpenAI(
+    api_key=api_key,
+)
 
 
 class Website:
@@ -71,30 +79,23 @@ def get_links_user_prompt(website):
 
 def get_links(url):
     website = Website(url)
-    response = ollama.chat(
+    response = client.chat.completions.create(
         model=MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": get_links_user_prompt(website)},
         ],
-        format="json",  # format is a string
+        response_format={"type": "json_object"},
     )
-    content = response["message"]["content"]
-
-    # Parse JSON string to Python object
-    try:
-        result = json.loads(content)
-    except json.JSONDecodeError as e:
-        raise RuntimeError(f"Error decoding JSON: {e}\nContent:\n{content}")
-
-    return result
+    result = response.choices[0].message.content
+    return json.loads(result or "")
 
 
 def get_all_details(url):
     result = "Landing Page:\n"
     result = Website(url).get_contents()
     links = get_links(url)
-    print(links)
+    print("HERE are links\n", links)
     for link in links["links"]:
         result += f"\n\n{link['type']}\n"
         try:
@@ -121,7 +122,7 @@ def get_brochure_user_prompt(company_name, url):
 
 def translate_to_lang(lang, prompt):
     symtem_promp = f"You are a translator with expertise in translating company brochure to other languages. Translate the brochure in other languages and respond in markdown"
-    response = ollama.chat(
+    response = client.chat.completions.create(
         model=MODEL,
         messages=[
             {"role": "system", "content": symtem_promp},
@@ -134,11 +135,12 @@ def translate_to_lang(lang, prompt):
     )
     full_content = ""
     for chunk in response:
-        # Each chunk looks like: {"message": {"content": "..."}}
-        part = chunk.get("message", {}).get("content", "")
-        full_content += part
-        print(part, end="")  # optional: print as we receive it
-
+        # Access the streamed delta content
+        delta = chunk.choices[0].delta
+        if hasattr(delta, "content"):
+            part = delta.content
+            full_content += part or ""
+            print(part, end="")  # streaming output
     # Finally, do something with the full content
     print("\n\n=== FULL CONTENT ===\n")
     print(full_content)
@@ -149,14 +151,14 @@ def create_brochure(company_name, url):
     system_prompt = "You are an assistant that analyzes the contents of several relevant pages from a company website \
 and creates a short brochure about the company for prospective customers, investors and recruits in a funny way. Respond in markdown.\
 Include details of company culture, customers and careers/jobs if you have the information."
-    response = ollama.chat(
+    response = client.chat.completions.create(
         model=MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": get_brochure_user_prompt(company_name, url)},
         ],
     )
-    translate_to_lang("Spanish", response["message"]["content"])
+    translate_to_lang("Marathi", response.choices[0].message.content)
 
     # result = response["message"]["content"]
     # print(result)
