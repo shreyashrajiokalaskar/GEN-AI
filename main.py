@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup, Tag
 from IPython.display import Markdown, display
 from openai import OpenAI
 from dotenv import load_dotenv
+import gradio as gr
 
 MODEL = "gpt-4o-mini"
 load_dotenv(override=True)
@@ -64,6 +65,20 @@ system_prompt += """
     ]
 }
 """
+
+
+def stream_gpt(prompt):
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt},
+    ]
+    stream = client.chat.completions.create(
+        model="gpt-4o-mini", messages=messages, stream=True
+    )
+    result = ""
+    for chunk in stream:
+        result += chunk.choices[0].delta.content or ""
+        yield result
 
 
 def get_links_user_prompt(website):
@@ -147,22 +162,36 @@ def translate_to_lang(lang, prompt):
     display(Markdown(full_content))
 
 
-def create_brochure(company_name, url):
-    system_prompt = "You are an assistant that analyzes the contents of several relevant pages from a company website \
-and creates a short brochure about the company for prospective customers, investors and recruits in a funny way. Respond in markdown.\
+def create_brochure(company_name, url, model, tone):
+    system_prompt = f"You are an assistant that analyzes the contents of several relevant pages from a company website \
+and creates a short brochure about the company for prospective customers, investors and recruits in a {tone}. Respond in markdown.\
 Include details of company culture, customers and careers/jobs if you have the information."
-    response = client.chat.completions.create(
+    stream = client.chat.completions.create(
         model=MODEL,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": get_brochure_user_prompt(company_name, url)},
         ],
+        stream=True,
     )
-    translate_to_lang("Marathi", response.choices[0].message.content)
+    # translate_to_lang("Marathi", response.choices[0].message.content)
+    result = ""
+    for chunk in stream:
+        result += chunk.choices[0].delta.content or ""
+        yield result
 
-    # result = response["message"]["content"]
-    # print(result)
-    # display(Markdown(result))
 
-
-create_brochure("ShreyashKalaskar", "https://shreyash-kalaskar.netlify.app")
+view = gr.Interface(
+    fn=create_brochure,
+    inputs=[
+        gr.Textbox(label="Company name:"),
+        gr.Textbox(label="Landing page URL including http:// or https://"),
+        gr.Dropdown(["GPT"], label="Select model"),
+        gr.Dropdown(
+            ["Jolly tone", "Normal tone", "Serious tone"], label="Select a tone"
+        ),
+    ],
+    outputs=[gr.Markdown(label="Brochure:")],
+    flagging_mode="never",
+)
+view.launch()
